@@ -7,16 +7,32 @@ using System.Linq;
 
 public class NewsFetcher : MonoBehaviour
 {
-    public string newsUrl = "https://crypto.news/news/";
-    public List<string> newsLinks = new List<string>(); // Публичный список ссылок
-    public List<string> newsTitles = new List<string>(); // Публичный список заголовков
+    [SerializeField] private string newsUrl = "https://crypto.news/news/";
+    public List<string> newsLinks = new List<string>(); //  список ссылок
+    public List<string> newsTitles = new List<string>(); //  список заголовков
     [SerializeField] private int maxLinks;
 
-    private void Start()
+    [SerializeField] private List<ArticleFetcher> articles;
+
+    private void Awake()
     {
         FetchNews();
     }
 
+    private void Start()
+    {
+        StartCoroutine("Crutch", 1f);
+    }
+
+    public void Crutch()
+    {
+        for (int i = 0; i < articles.Count; i++)
+        {
+            articles[i].FetchArticle(newsLinks[i]);
+            articles[i].article.text = newsTitles[i];
+        }
+    }
+    
     public void FetchNews()
     {
         StartCoroutine(GetNewsLinks(newsUrl));

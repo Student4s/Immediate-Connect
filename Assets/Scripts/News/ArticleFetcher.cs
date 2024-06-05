@@ -3,12 +3,17 @@ using UnityEngine;
 using UnityEngine.Networking;
 using HtmlAgilityPack;
 using System.ComponentModel;
+using UnityEngine.UI;
 
 public class ArticleFetcher : MonoBehaviour
 {
-    public string articleText;
+    public string articleText;// текст
+    public Text article;// заголовок
+
     public Texture2D articleImage; 
     private string articleImageUrl;
+
+    [SerializeField] private NewsPanel newsPanel;// панелька, куда фулл текст будет закинут. 
 
     public void FetchArticle(string url)
     {
@@ -68,5 +73,10 @@ public class ArticleFetcher : MonoBehaviour
                 Debug.Log("Image downloaded successfully");
             }
         }
+    }
+
+    public void News()// перекидываем текст на панельку.
+    {
+        newsPanel.GetNewsText(articleText);
     }
 }
