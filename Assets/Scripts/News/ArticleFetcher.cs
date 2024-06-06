@@ -14,7 +14,10 @@ public class ArticleFetcher : MonoBehaviour
     private string articleImageUrl;
 
     [SerializeField] private NewsPanel newsPanel;// панелька, куда фулл текст будет закинут. 
-
+    private void Start()
+    {
+        newsPanel = Resources.FindObjectsOfTypeAll<NewsPanel>()[0];
+    }
     public void FetchArticle(string url)
     {
         StartCoroutine(GetArticleContent(url));
@@ -78,5 +81,7 @@ public class ArticleFetcher : MonoBehaviour
     public void News()// перекидываем текст на панельку.
     {
         newsPanel.GetNewsText(articleText);
+        newsPanel.gameObject.SetActive(true);
+        gameObject.SetActive(false);
     }
 }
