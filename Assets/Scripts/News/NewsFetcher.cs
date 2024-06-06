@@ -13,6 +13,7 @@ public class NewsFetcher : MonoBehaviour
     [SerializeField] private int maxLinks;
 
     [SerializeField] private ArticleFetcher article;
+    [SerializeField] private List<ArticleFetcher> articlesList = new List<ArticleFetcher>();
     [SerializeField] private GameObject ScrollPanel;
 
     private void Awake()
@@ -25,14 +26,35 @@ public class NewsFetcher : MonoBehaviour
         StartCoroutine("Crutch", 0.2f);
     }
 
-    public void Crutch()
+    public void SpawnNews(bool B)// спауним блоки с новостями.
     {
-        for (int i = 0; i < newsTitles.Count; i++)
+        if(B)
         {
-            var A = Instantiate(article, ScrollPanel.transform);
-            A.FetchArticle(newsLinks[i]);
-            A.article.text = newsTitles[i];
+            for (int i = 0; i < newsTitles.Count; i++)
+            {
+                var A = Instantiate(article, ScrollPanel.transform);
+                A.FetchArticle(newsLinks[i]);
+                A.article.text = newsTitles[i];
+                articlesList.Add(A);
+            }
         }
+        
+    }
+
+    public void DespawnNews(bool B)// деспауним блоки с новостями.
+    {
+        if (!B)
+        {
+            foreach (ArticleFetcher obj in articlesList)
+            {
+                if (obj != null)
+                {
+                    Destroy(obj);
+                }
+            }
+            articlesList.Clear();
+        }
+       
     }
     
     public void FetchNews()
