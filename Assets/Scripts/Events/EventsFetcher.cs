@@ -7,97 +7,70 @@ using UnityEngine.Networking;
 
 public class EventsFetcher : MonoBehaviour
 {
-    public List<string> eventTitles = new List<string>();
-    public List<string> eventDates = new List<string>();
-    public List<Sprite> eventImages = new List<Sprite>();
+    public string url = "https://cryptoevents.global/";
+    public List<string> eventNames = new List<string>();
+    public List<string> eventMonths = new List<string>();
+    public List<string> eventDays = new List<string>();
+    public List<string> eventYears = new List<string>();
     public List<string> eventLinks = new List<string>();
+    public List<string> eventDescriptions = new List<string>();
 
-    [SerializeField] private SpawnEventBlocks spawner;
+    public SpawnEventBlocks spawner;
     void Start()
     {
-        string url = "https://crypto.news/events/";
-        FetchEventData(url);
-
-        StartCoroutine("Spawn", 1f);
+        FetchEvents();
+        SpawnBlocks();
+        
     }
 
-    void Spawn()
+    void SpawnBlocks()
     {
-        for (int i = 0; i < eventTitles.Count; i++)
+        for (int i = 0; i < 5; i++)
         {
-            spawner.AddBlock(eventTitles[i], eventDates[i], eventLinks[i]);
+            spawner.AddBlock(eventNames[i], eventMonths[i], eventDays[i], eventYears[i], eventLinks[i], eventDescriptions[i]);
         }
+
     }
-
-    private void FetchEventData(string url)
+    public void FetchEvents()
     {
-        HttpClient client = new HttpClient();
-        HttpResponseMessage response = client.GetAsync(url).Result;
-        string pageContent = response.Content.ReadAsStringAsync().Result;
+        UnityWebRequest request = UnityWebRequest.Get(url);
+        request.SendWebRequest();
 
-        HtmlDocument document = new HtmlDocument();
-        document.LoadHtml(pageContent);
-
-        var eventNodes = document.DocumentNode.SelectNodes("//div[contains(@class, 'event-card')]");
-        if (eventNodes != null)
+        while (!request.isDone)
         {
-            foreach (var eventNode in eventNodes)
-            {
-                // Extract event title
-                var titleNode = eventNode.SelectSingleNode(".//p[contains(@class, 'event-card__title')]");
-                string eventTitle = titleNode?.InnerText.Trim();
-                if (!string.IsNullOrEmpty(eventTitle) && !eventTitles.Contains(eventTitle))
-                {
-                    eventTitles.Add(eventTitle);
-                }
-
-                // Extract event dates
-                var dateNodes = eventNode.SelectNodes(".//p[contains(@class, 'event-card__duration')]/time");
-                if (dateNodes != null && dateNodes.Count == 2)
-                {
-                    string startDate = dateNodes[0].Attributes["datetime"].Value;
-                    string endDate = dateNodes[1].Attributes["datetime"].Value;
-                    string eventDate = $"{startDate} - {endDate}";
-
-                    if (!string.IsNullOrEmpty(eventDate) && !eventDates.Contains(eventDate))
-                    {
-                        eventDates.Add(eventDate);
-                    }
-                }
-
-                // Extract event image and link
-                var imageNode = eventNode.SelectSingleNode(".//a[contains(@class, 'event-card__link')]");
-                string eventLink = imageNode?.Attributes["href"].Value;
-                if (!string.IsNullOrEmpty(eventLink) && !eventLinks.Contains(eventLink))
-                {
-                    eventLinks.Add(eventLink);
-                }
-
-                var imgNode = eventNode.SelectSingleNode(".//img[contains(@class, 'event-card__image')]");
-                string imageUrl = imgNode?.Attributes["src"].Value;
-                if (!string.IsNullOrEmpty(imageUrl))
-                {
-                    StartCoroutine(LoadImageFromUrl(imageUrl));
-                }
-            }
+            // Ждем завершения запроса
         }
-    }
 
-    private IEnumerator LoadImageFromUrl(string imageUrl)
-    {
-        using (UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(imageUrl))
+        if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
         {
-            yield return uwr.SendWebRequest();
+            Debug.LogError("Error fetching events: " + request.error);
+        }
+        else
+        {
+            string html = request.downloadHandler.text;
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(html);
 
-            if (uwr.result != UnityWebRequest.Result.Success)
+            var eventBlocks = doc.DocumentNode.SelectNodes("//div[contains(@class, 'event_blk')]");
+
+            if (eventBlocks != null)
             {
-                Debug.LogError("Error downloading image: " + uwr.error);
-            }
-            else
-            {
-                Texture2D texture = DownloadHandlerTexture.GetContent(uwr);
-                Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
-                eventImages.Add(sprite);
+                foreach (var eventBlock in eventBlocks)
+                {
+                    var eventNameNode = eventBlock.SelectSingleNode(".//p[@class='event_name']");
+                    var eventMonthNode = eventBlock.SelectSingleNode(".//span[@class='event_month has_range']");
+                    var eventDayNode = eventBlock.SelectSingleNode(".//span[@class='event_day has_range']");
+                    var eventYearNode = eventBlock.SelectSingleNode(".//span[@class='event_year']");
+                    var eventLinkNode = eventBlock.SelectSingleNode(".//a[contains(@href, 'https://cryptoevents.global')]");
+                    var eventDescriptionNode = eventBlock.SelectSingleNode(".//div[@class='event_short_description']");
+
+                    if (eventNameNode != null) eventNames.Add(eventNameNode.InnerText.Trim());
+                    if (eventMonthNode != null) eventMonths.Add(eventMonthNode.InnerText.Trim());
+                    if (eventDayNode != null) eventDays.Add(eventDayNode.InnerText.Trim());
+                    if (eventYearNode != null) eventYears.Add(eventYearNode.InnerText.Trim());
+                    if (eventLinkNode != null) eventLinks.Add(eventLinkNode.GetAttributeValue("href", "").Trim());
+                    if (eventDescriptionNode != null) eventDescriptions.Add(eventDescriptionNode.InnerText.Trim());
+                }
             }
         }
     }

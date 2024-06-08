@@ -54,7 +54,7 @@ public class CryptoPriceFetcher : MonoBehaviour
                 ParseCryptoPrices(jsonResponse);
                 for (int i = 0; i < cryptoNames.Count; i++)
                 {
-                    Debug.Log($"{cryptoNames[i]}: ${cryptoPrices[i]}");
+                   // Debug.Log($"{cryptoNames[i]}: ${cryptoPrices[i]}");
                 }
             }
         }

@@ -1,34 +1,67 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Networking;
+using Newtonsoft.Json.Linq;
+using System;
 
 public class ExampleUsage : MonoBehaviour
 {
-    private ArticleFetcher articleFetcher;
-    public string articleUrl;
+    string[] cryptocurrencies = { "bitcoin", "ethereum", "binancecoin", "tether", "cardano", "dogecoin", "ripple", "polkadot", "usd-coin", "uniswap" };
+
+    // Адрес API CoinGecko
+    string apiUrl = "https://api.coingecko.com/api/v3/simple/price?ids={0}&vs_currencies=usd&date={1}-01-01";
 
     void Start()
     {
-        articleFetcher = GetComponent<ArticleFetcher>();
-        articleFetcher.FetchArticle(articleUrl);
+        StartCoroutine(FetchCryptoPrices());
     }
 
-    void Update()
+    IEnumerator FetchCryptoPrices()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        // Для каждой криптовалюты делаем запрос к API CoinGecko
+        foreach (string crypto in cryptocurrencies)
         {
-            Debug.Log("Article Text: " + articleFetcher.articleText);
-            if (articleFetcher.articleImage != null)
+            string url = string.Format(apiUrl, crypto, 2024);
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
             {
-                Debug.Log("Article Image is downloaded and available as Texture2D");
-                // Пример использования изображения: создание Sprite и отображение на UI
-                Sprite articleSprite = Sprite.Create(articleFetcher.articleImage, new Rect(0, 0, articleFetcher.articleImage.width, articleFetcher.articleImage.height), new Vector2(0.5f, 0.5f));
-                // Дополнительный код для отображения Sprite на UI (например, Image component)
+                yield return webRequest.SendWebRequest();
+
+                if (webRequest.result == UnityWebRequest.Result.Success)
+                {
+                    // Получаем ответ в формате JSON
+                    string jsonResponse = webRequest.downloadHandler.text;
+                    // Разбираем JSON для получения цены криптовалюты
+                    float price = ParseCryptoPrice(jsonResponse, crypto);
+                    Debug.Log("Price of " + crypto + " on January 1, " + 2024 + ": $" + price);
+                }
+                else
+                {
+                    Debug.Log("Error fetching data: " + webRequest.error);
+                }
             }
-            else
-            {
-                Debug.Log("Article Image not available");
-            }
+        }
+    }
+
+    float ParseCryptoPrice(string jsonResponse, string crypto)
+    {
+        // Разбираем JSON и извлекаем цену криптовалюты
+        try
+        {
+            // Преобразуем JSON в объект
+            JObject jsonObject = new JObject(jsonResponse);
+            // Получаем цену криптовалюты
+            float price = jsonObject[crypto]["usd"].Value<float>();
+            return price;
+        }
+        catch (Exception e)
+        {
+            Debug.Log("Error parsing JSON: " + e.Message);
+            return 0f;
         }
     }
 }

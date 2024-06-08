@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class SpawnEventBlocks : MonoBehaviour
 {
-    [SerializeField] private EventBlocks block;
+    [SerializeField] private EventBlocks[] blocks;
+    private int currentBlock=0;
 
-
-    public void AddBlock(string name, string time, string link)
+    public void AddBlock(string name, string month, string day, string year, string link, string description)
     {
-        var a = Instantiate(block, gameObject.transform);
-        a.GetInfo(name, time, link);
+        blocks[currentBlock].GetInfo(name, month, day, year, link, description);
+        currentBlock += 1;
     }
 }
