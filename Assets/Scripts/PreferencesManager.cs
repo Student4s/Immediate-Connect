@@ -21,7 +21,9 @@ public class PreferencesManager : MonoBehaviour
     public Toggle toggle2;
     public Toggle toggle3;
     public TopRectangle top;
-
+    public NewsFetcher1 ev1;
+    public NewsFetcher2 ev2;
+    public NewsFetcher3 ev3;
 
     void Start()
     {
@@ -31,7 +33,20 @@ public class PreferencesManager : MonoBehaviour
         toggle2.isOn = Toggle2;
         toggle3.isOn = Toggle3;
 
-        top.UpdateInfo(FavoriteCurrencyN, FavoriteCurrencyP);
+        if (toggle1.isOn)
+        {
+            ev1.SpawnNews(true);
+        }
+        if (toggle2.isOn)
+        {
+            ev2.SpawnNews(true);
+        }
+        if (toggle3.isOn)
+        {
+            ev3.SpawnNews(true);
+        }
+
+      top.UpdateInfo(FavoriteCurrencyN, FavoriteCurrencyP);
     }
 
     public void SetFavoriteCurrency(string currencyName, string price)

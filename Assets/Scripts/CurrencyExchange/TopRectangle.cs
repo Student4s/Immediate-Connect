@@ -7,13 +7,13 @@ public class TopRectangle : MonoBehaviour
 {
     [SerializeField] private Text currencyName;
     [SerializeField] private Text price;
-    [SerializeField] private PreferencesManager mamger;
+    [SerializeField] private PreferencesManager manager;
     
     public void UpdateInfo(string name, string currencyPrice)
     {
         currencyName.text = name;
         price.text = currencyPrice;
 
-        mamger.SetFavoriteCurrency(currencyName.text, price.text);
+        manager.SetFavoriteCurrency(currencyName.text, price.text);
     }
 }
