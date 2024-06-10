@@ -48,7 +48,7 @@ public class EventBlocks : MonoBehaviour
     public void AdditionalInfo()
     {
         panel.gameObject.SetActive(true);
-        panel.description.text = eventDescription;
+        panel.description.text = "Name: " + eventName.text + "\n" + "Date: " + eventMonth.text + ". "+ eventDay.text + ". " + eventYear.text + "\n" + "\n" + eventDescription;
     }
 
     IEnumerator FetchText(string pageUrl)
